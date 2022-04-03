@@ -11,7 +11,7 @@ function readTextFile(file)
 {
 	fetch(file)
 	.then(response => response.text())
-	.then(text => console.log(text))
+	.then(text => return text)
 }
 
 function transformText(text) {
