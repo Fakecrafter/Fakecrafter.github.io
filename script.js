@@ -11,6 +11,7 @@ function readTextFile(file) {
 	var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4 && xhr.status == 200) {
+			alert("hello");
             return xhr.responseText;
         }
     }
