@@ -1,23 +1,20 @@
-let totype = null;
+let totype = "";
+const RANDOM_QUOTE_API_URL = 'http://api.quotable.io/random'
 let inputbox = document.getElementById("typebox");
 let accept = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890,;.:-#'+*!\"â‚¬$%&/()=? Backspace";
 let typed = "";
+let secondsLeft = 60;
+let seconds = 60;
 let mistakes = new Set([]);
 let textbox = document.getElementById("textbox");
-readTextFile("/typetext/hammer.txt");
+let wpmbox = document.getElementById("wpm");
 let curr_word = 0;
 reset();
 
-function readTextFile(file) {
-	var xhr = new XMLHttpRequest();
-	xhr.onreadystatechange = function() {
-		// if (xhr.readyState == 4 && xhr.status == 200) {
-		totype = xhr.responseText;
-		// }
-	}
-	xhr.open('GET', file);
-	xhr.send();
-	reset();
+function getRandomQuote() {
+  return fetch(RANDOM_QUOTE_API_URL)
+    .then(response => response.json())
+    .then(data => data.content)
 }
 
 function transformText(text) {
@@ -58,23 +55,28 @@ let timer = setInterval(() => {
 		document.getElementById("timer").innerHTML = secondsLeft;
 		secondsLeft--;
 		if (secondsLeft == 0) {
-			calculatewpm(typedtext, mistakes);
+			endgame(typedtext, mistakes, seconds - secondsLeft);
 			reset()
 		}
 	}
 }, 1000);
 
-function reset() {
+async function reset() {
 	gamestart = false;
 	mistakes = new Set([]);
-	secondsLeft = 60;
+	secondsLeft = seconds;
+	totype = "";
 	typedtext = "";
 	curr_word = 0;
 	textbox.scrollTop = 0;
+	textbox.innerHTML = "";
+	document.getElementById("endcontainer").style.display = "none";
+	document.getElementById("container").style.display = "block";
 	document.getElementById("timer").innerHTML = "Wikitype";
-	transformText(totype);
 	inputbox.value = '';
 	inputbox.focus();
+	totype = await getRandomQuote();
+	transformText(totype);
 }
 
 // this needs some improvement
@@ -93,11 +95,18 @@ function compare(typed, totype, complete) {
 }
 
 // include time into calculation
-function calculatewpm(typed, mistakes) {
+function endgame(typed, mistakes, time) {
+	let timecalc = 60/time;
 	let words = typed.split(" ").length;
-	let accuracy = 100 - mistakes.size / words;
-	console.log(words + ' ' + accuracy);
-	return words * accuracy;
+	let accuracy = 1 - mistakes.size / words;
+	console.log(words + ' ' + accuracy + ' ' + timecalc);
+	let wpm = Math.floor(words * accuracy * timecalc);
+	document.getElementById('container').style.display = "none";
+	document.getElementById("timer").innerHTML = "Wikitype";
+	document.getElementById("endcontainer").style.display = "block";
+	document.getElementById("wpm").innerHTML = "WPM: " + wpm;
+	document.getElementById("accuracy").innerHTML = "ACCURACY: " + Math.floor(accuracy * 100) + "%";
+	gamestart = false;
 }
 
 
@@ -130,9 +139,15 @@ function updateValue(event) {
 				typebox.value = '';
 				return;
 			} else {
-				curr_word += 1;
 				typedtext += typebox.value;
 				typebox.value = null;
+				console.log(totype.split(" ").length);
+				console.log(curr_word);
+				curr_word += 1;
+				if (totype.split(" ").length == curr_word) {
+					console.log("the end");
+					endgame(typedtext, mistakes, seconds - secondsLeft);
+				}
 			}
 		}
 	} 
