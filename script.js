@@ -1,21 +1,23 @@
-let totype = "";
+let totype = null;
 let inputbox = document.getElementById("typebox");
 let accept = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890,;.:-#'+*!\"â‚¬$%&/()=? Backspace";
 let typed = "";
 let mistakes = new Set([]);
 let textbox = document.getElementById("textbox");
+readTextFile("/typetext/hammer.txt");
 let curr_word = 0;
 reset();
 
 function readTextFile(file) {
 	var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4 && xhr.status == 200) {
-            totype = xhr.responseText;
-        }
-    }
-    xhr.open('GET', file);
-    xhr.send();
+	xhr.onreadystatechange = function() {
+		// if (xhr.readyState == 4 && xhr.status == 200) {
+		totype = xhr.responseText;
+		// }
+	}
+	xhr.open('GET', file);
+	xhr.send();
+	reset();
 }
 
 function transformText(text) {
@@ -66,7 +68,6 @@ function reset() {
 	gamestart = false;
 	mistakes = new Set([]);
 	secondsLeft = 60;
-	readTextFile("/typetext/hammer.txt");
 	typedtext = "";
 	curr_word = 0;
 	textbox.scrollTop = 0;
