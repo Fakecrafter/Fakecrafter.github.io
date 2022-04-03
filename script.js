@@ -7,11 +7,15 @@ let textbox = document.getElementById("textbox");
 let curr_word = 0;
 reset();
 
-function readTextFile(file)
-{
-	fetch(file)
-	.then(response => response.text())
-	.then(text => return text)
+function readTextFile(file) {
+	var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            return xhr.responseText;
+        }
+    }
+    xhr.open('GET', file);
+    xhr.send();
 }
 
 function transformText(text) {
