@@ -66,6 +66,7 @@ function reset() {
 	gamestart = false;
 	mistakes = new Set([]);
 	secondsLeft = 60;
+	readTextFile("/typetext/hammer.txt");
 	typedtext = "";
 	curr_word = 0;
 	textbox.scrollTop = 0;
