@@ -33,18 +33,25 @@ div, input, button {
 .textbox {
 	background-color: #3c3836;
 	border: none;
-	max-height: 126px;
+	max-height: 124px;
+	text-align: left;
+	overflow-y: hidden;
 }
 
 .curr_word {
 	background-color: #928374;
-	padding: 2px;
+	padding: 1px;
 	border-radius: 3px;
+	position: relative;
 }
 
 .word {
 	background-color: #3c3836;
 	color: #ebdbb2;
+}
+
+.typed_word {
+	color: #b8bb26;
 }
 
 .error {
@@ -55,9 +62,6 @@ div, input, button {
 	background-color: #fb4934;
 	color: #ebdbb2;
 }
-	
-
-	
 
 .timer {
 	font-size: 50px;

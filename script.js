@@ -1,10 +1,18 @@
-let totype = "what if this is even longer and longer and much more longer bla bla bla bla bla hey how are you today i want to know how much you flex today so lets gooooooootype this text or you die this needs to be a bit longer and just a little bit. now we got it";
+let totype = readTextFile('typetext/hammer.txt');
 let inputbox = document.getElementById("typebox");
 let accept = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890,;.:-#'+*!\"â‚¬$%&/()=? Backspace";
-let mistakes = [];
+let typed = "";
+let mistakes = new Set([]);
 let textbox = document.getElementById("textbox");
 let curr_word = 0;
 reset();
+
+function readTextFile(file)
+{
+	fetch(file)
+	.then(response => response.text())
+	.then(text => console.log(text))
+}
 
 function transformText(text) {
 	let textlist = text.split(" ");
@@ -16,11 +24,14 @@ function transformText(text) {
 		if (curr_word == i) {
 			word.classList.add('curr_word');
 		}
-		if (curr_word != i) {
+		if (curr_word < i) {
 			word.classList.add('word');
 		}
-		if (mistakes.includes(i) == true) {
-			console.log(mistakes);
+		if (curr_word > i) {
+			word.classList.add('word');
+			word.classList.add('typed_word');
+		}
+		if (mistakes.has(i) == true) {
 			word.classList.add('error');
 		}
 		textbox.appendChild(word);
@@ -41,7 +52,7 @@ let timer = setInterval(() => {
 		document.getElementById("timer").innerHTML = secondsLeft;
 		secondsLeft--;
 		if (secondsLeft == 0) {
-			clearInterval(timer);
+			calculatewpm(typedtext, mistakes);
 			reset()
 		}
 	}
@@ -49,10 +60,11 @@ let timer = setInterval(() => {
 
 function reset() {
 	gamestart = false;
-	mistakes = [];
+	mistakes = new Set([]);
 	secondsLeft = 60;
 	typedtext = "";
 	curr_word = 0;
+	textbox.scrollTop = 0;
 	document.getElementById("timer").innerHTML = "Wikitype";
 	transformText(totype);
 	inputbox.value = '';
@@ -61,22 +73,27 @@ function reset() {
 
 // this needs some improvement
 // still some bugs
-function compare(typed, totype) {
-	for (var x = 0; x < typed.length; x++) {
-		var a = typed.charAt(x);
-		var b = totype.charAt(x);
-		if (a != b) {
-			if (mistakes.includes(curr_word) == false) {
-				mistakes.push(curr_word)
-				return;
-			}
-		} else {
-			if (mistakes.includes(curr_word) == true) {
-				mistakes.pop();
-			}
+function compare(typed, totype, complete) {
+	if (complete == true) {
+		if (typed != totype) {
+			return true;
 		}
 	}
+	if (typed != totype.slice(0, typed.length)) {
+		return true;
+	} else {
+		return false;
+	}
 }
+
+// include time into calculation
+function calculatewpm(typed, mistakes) {
+	let words = typed.split(" ").length;
+	let accuracy = 100 - mistakes.size / words;
+	console.log(words + ' ' + accuracy);
+	return words * accuracy;
+}
+
 
 
 document.addEventListener("keydown", function (event) {
@@ -102,10 +119,23 @@ function updateValue(event) {
 	}
 	if (event.inputType == "insertText") {
 		if (event.data == " ") {
-			curr_word = curr_word + 1;
-			inputbox.value = null;
+			if (compare(typebox.value, document.getElementById(curr_word).innerText + ' ', true) == true) mistakes.add(curr_word);
+			if (typebox.value == '') {
+				typebox.value = '';
+				return;
+			} else {
+				curr_word += 1;
+				typedtext += typebox.value;
+				typebox.value = null;
+			}
 		}
 	} 
-	compare(typebox.value, document.getElementById(curr_word).innerText);
+	if (compare(typebox.value, document.getElementById(curr_word).innerText) == true) {
+		mistakes.add(curr_word);
+	} else if (mistakes.has(curr_word)) {
+		mistakes.delete(curr_word);
+	}
 	transformText(totype);
+	let myElement = document.getElementById(curr_word);
+	myElement.scrollIntoView();
 }
