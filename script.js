@@ -1,4 +1,4 @@
-let totype = readTextFile('typetext/hammer.txt');
+let totype = "";
 let inputbox = document.getElementById("typebox");
 let accept = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890,;.:-#'+*!\"â‚¬$%&/()=? Backspace";
 let typed = "";
@@ -11,8 +11,7 @@ function readTextFile(file) {
 	var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4 && xhr.status == 200) {
-			alert("hello");
-            return xhr.responseText;
+            totype = xhr.responseText;
         }
     }
     xhr.open('GET', file);
