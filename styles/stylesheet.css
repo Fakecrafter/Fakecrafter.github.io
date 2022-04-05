@@ -7,6 +7,7 @@
 
 
 body {
+	background-color: #282828;
 	text-align: center;
 	align-items: center;
 	font-size: 20px;
@@ -19,6 +20,7 @@ div, input, button {
 	min-height: 40px;
 	border-style: solid; 
 	margin: 30px;
+	margin-bottom: 10px;
 	font-size: 30px;
 	border-radius: 5px;
 	overflow: hidden;
@@ -94,4 +96,8 @@ div, input, button {
 	z-index: 3;
 	margin: 3px;
 	border: none;
+}
+
+.other {
+	background-color: #3c3836;
 }

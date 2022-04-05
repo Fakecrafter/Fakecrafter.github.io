@@ -1,22 +1,47 @@
+let randomwords = ["denken", "bauen", "aber", "alle", "alt", "Auto", "finden", "Hand", "heute", "hoch", "halten", "schreiben", "werden", "von", "vor", "die", "der", "das", "wie", "warum", "Menschen", "Mann", "Frau", "also", "lesen", "gerade", "so", "zwischen", "in", "hier", "Deutschland", "Weltall", "Leben", "dass", "Problem", "genau", "gegen", "dem", "sowie", "den", "jetzt", "immer", "wurde", "dann", "beim", "ins", "habe", "haben", "eins", "zwei", "drei", "vier", "alles", "beiden", "seinen", "seine", "könnte", "können", "Schule", "tun", "Zeit", "schnell", "spielen"];
+// plain text: what to write
 let totype = "";
-const RANDOM_QUOTE_API_URL = 'http://api.quotable.io/random'
+// wiki-entries or quotes?
+let quoteMode = false;
+// the text comes from the API_URL
+// const API_URL_WIKI = 'https://de.wikipedia.org/w/api.php?action=query&prop=extracts&titles=Richard_Stallman&formatversion=2&explaintext=true&exsectionformat=plain&format=json&origin=*';
+const API_URL = 'https://api.quotable.io/random';
+// where you type
 let inputbox = document.getElementById("typebox");
+// only let the user type this characters
 let accept = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890,;.:-#'+*!\"â‚¬$%&/()=? Backspace";
+// what did the user already type
 let typed = "";
-let secondsLeft = 60;
-let seconds = 60;
+// how many seconds are left
+let secondsLeft = 30;
+// reset-value
+let seconds = 30;
+// where did you make mistakes
 let mistakes = new Set([]);
 let textbox = document.getElementById("textbox");
 let wpmbox = document.getElementById("wpm");
+// the word that you are typing right now
 let curr_word = 0;
 reset();
 
-function getRandomQuote() {
-  return fetch(RANDOM_QUOTE_API_URL)
-    .then(response => response.json())
-    .then(data => data.content)
+function get_random (list) {
+  return list[Math.floor((Math.random()*list.length))];
 }
 
+// get text from API_URL
+async function getRandomQuote() {
+	let response = await fetch(API_URL);
+	if (!response.ok) {
+		throw Error(response.statusText);
+	}
+	const json = response.json();
+	return json;
+}
+
+
+// format plain text into textbox (include mistakes)
+// pretty inefficient because it runs every character
+// ... who cares ...
 function transformText(text) {
 	let textlist = text.split(" ");
 	textbox.innerHTML = '';
@@ -45,22 +70,24 @@ function transformText(text) {
 	}
 }
 
+function toggleQuoteMode() {
+	quoteMode = !quoteMode;
+	reset();
+}
 
-// TODO: read text files into memory
-// TODO: calculate speed
-// TODO: colors
 
+// set the timer
 let timer = setInterval(() => {
 	if (gamestart == true) {
 		document.getElementById("timer").innerHTML = secondsLeft;
 		secondsLeft--;
 		if (secondsLeft == 0) {
 			endgame(typedtext, mistakes, seconds - secondsLeft);
-			reset()
 		}
 	}
 }, 1000);
 
+// reset the whole thing
 async function reset() {
 	gamestart = false;
 	mistakes = new Set([]);
@@ -68,19 +95,31 @@ async function reset() {
 	totype = "";
 	typedtext = "";
 	curr_word = 0;
-	textbox.scrollTop = 0;
 	textbox.innerHTML = "";
 	document.getElementById("endcontainer").style.display = "none";
 	document.getElementById("container").style.display = "block";
 	document.getElementById("timer").innerHTML = "Wikitype";
 	inputbox.value = '';
 	inputbox.focus();
-	totype = await getRandomQuote();
+	if (quoteMode) {
+		totype = await getRandomQuote();
+		totype = totype.content;
+	}
+	if (!quoteMode) {
+		for (i=0; i<300; i++) {
+			totype += get_random(randomwords);
+			totype += ' ';
+		}
+		totype.trim();
+	}
+	textbox.scrollTop = 0;
 	transformText(totype);
+
 }
 
-// this needs some improvement
-// still some bugs
+// compare different strings
+// complete means that the word is already finished so it checks if the word is complete
+// pretty self-explanatory
 function compare(typed, totype, complete) {
 	if (complete == true) {
 		if (typed != totype) {
@@ -94,6 +133,7 @@ function compare(typed, totype, complete) {
 	}
 }
 
+// end game and show speed and accuracy
 // include time into calculation
 function endgame(typed, mistakes, time) {
 	let timecalc = 60/time;
@@ -111,6 +151,9 @@ function endgame(typed, mistakes, time) {
 
 
 
+// you can restart the game with tab
+// very handy
+// this listens for tab
 document.addEventListener("keydown", function (event) {
 	var TABKEY = 9;
     if(event.keyCode == TABKEY) {
@@ -125,6 +168,7 @@ document.addEventListener("keydown", function (event) {
 	}
 }, true);
 
+// this listens for input in the eventbox
 typebox.addEventListener('input', updateValue);
 
 function updateValue(event) {
@@ -133,17 +177,19 @@ function updateValue(event) {
 		gamestart = true;
 	}
 	if (event.inputType == "insertText") {
+		// clear inputbox if space is pressed
 		if (event.data == " ") {
+			// check for mistakes
 			if (compare(typebox.value, document.getElementById(curr_word).innerText + ' ', true) == true) mistakes.add(curr_word);
+			// this doesnt work
 			if (typebox.value == '') {
 				typebox.value = '';
 				return;
 			} else {
 				typedtext += typebox.value;
 				typebox.value = null;
-				console.log(totype.split(" ").length);
-				console.log(curr_word);
 				curr_word += 1;
+				// end the game
 				if (totype.split(" ").length == curr_word) {
 					console.log("the end");
 					endgame(typedtext, mistakes, seconds - secondsLeft);
@@ -151,6 +197,7 @@ function updateValue(event) {
 			}
 		}
 	} 
+	// now you can correct things
 	if (compare(typebox.value, document.getElementById(curr_word).innerText) == true) {
 		mistakes.add(curr_word);
 	} else if (mistakes.has(curr_word)) {
@@ -158,5 +205,6 @@ function updateValue(event) {
 	}
 	transformText(totype);
 	let myElement = document.getElementById(curr_word);
+	// always "focus" the current word
 	myElement.scrollIntoView();
 }
